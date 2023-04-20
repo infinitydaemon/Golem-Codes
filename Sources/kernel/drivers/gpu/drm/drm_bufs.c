@@ -40,36 +40,39 @@
 
 static struct drm_map_list *drm_find_matching_map(struct drm_device *dev,
 						  struct drm_local_map *map)
-{
-	struct drm_map_list *entry;
-	list_for_each_entry(entry, &dev->maplist, head) {
-		/*
-		 * Because the kernel-userspace ABI is fixed at a 32-bit offset
-		 * while PCI resources may live above that, we only compare the
-		 * lower 32 bits of the map offset for maps of type
-		 * _DRM_FRAMEBUFFER or _DRM_REGISTERS.
-		 * It is assumed that if a driver have more than one resource
-		 * of each type, the lower 32 bits are different.
-		 */
-		if (!entry->map ||
-		    map->type != entry->map->type ||
-		    entry->master != dev->primary->master)
-			continue;
-		switch (map->type) {
-		case _DRM_SHM:
-			if (map->flags != _DRM_CONTAINS_LOCK)
-				break;
-			return entry;
-		case _DRM_REGISTERS:
-		case _DRM_FRAME_BUFFER:
-			if ((entry->map->offset & 0xffffffff) ==
-			    (map->offset & 0xffffffff))
-				return entry;
-		default: /* Make gcc happy */
-			;
-		}
-		if (entry->map->offset == map->offset)
-			return entry;
+struct drm_map_list *entry;
+
+/* Loop through each entry in the map list */
+list_for_each_entry(entry, &dev->maplist, head) {
+    /* Check if the map is null or has a different type or master */
+    if (!entry->map ||
+        map->type != entry->map->type ||
+        entry->master != dev->primary->master)
+        continue;
+
+    /* Compare the lower 32 bits of the offset for frame buffer or registers */
+    switch (map->type) {
+    case _DRM_SHM:
+        /* If the map is a shared memory and contains lock, return the entry */
+        if (map->flags != _DRM_CONTAINS_LOCK)
+            break;
+        return entry;
+    case _DRM_REGISTERS:
+    case _DRM_FRAME_BUFFER:
+        if ((entry->map->offset & 0xffffffff) ==
+            (map->offset & 0xffffffff))
+            return entry;
+        break;
+    default:
+        /* Make the compiler happy */
+        break;
+    }
+
+    /* Compare the full offset */
+    if (entry->map->offset == map->offset)
+        return entry;
+}
+
 	}
 
 	return NULL;
