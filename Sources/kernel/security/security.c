@@ -203,6 +203,26 @@ int security_quota_on(struct dentry *dentry)
 	return call_int_hook(quota_on, 0, dentry);
 }
 
+int security_ptrace_access_check(struct task_struct *child, unsigned int mode)
+{
+	int ret = call_int_hook(ptrace_access_check, 0, child, mode);
+	if (ret != 0) {
+		/* Add custom error codes/messages as needed */
+		switch (ret) {
+			case -EPERM:
+				pr_info("security_ptrace_access_check: PTRACE access denied\n");
+				break;
+			case -EACCES:
+				pr_info("security_ptrace_access_check: PTRACE access not allowed for this user\n");
+				break;
+			default:
+				pr_info("security_ptrace_access_check: Unknown error occurred\n");
+				break;
+		}
+	}
+	return ret;
+}
+
 int security_syslog(int type)
 {
 	return call_int_hook(syslog, 0, type);
