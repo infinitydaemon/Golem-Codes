@@ -6,7 +6,7 @@ class golemcodes():
   def __init__(self):
     self.name = "cwd";
     self.username = "cwdsystems";
-    self.location = "USA, Canada, Pakistan, KyrgzRepublic, Indonesia";
+    self.location = "Kyrgz Republic";
     self.protonmail = "@cwdsystems";
     self.web = "https://cwd.systems";
     self.languages ="Python,C,Bash";
